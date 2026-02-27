@@ -29,7 +29,7 @@ class SafeRow<R extends Record> {
 
   /// Reads a value. Allows the database value to be null.
   /// Throws if the key is missing from the schema or the type mismatches.
-  T? read<T>(String key) {
+  T? getOptional<T>(String key) {
     _validateAccess<T>(key);
 
     final value = _raw[key];
@@ -43,13 +43,13 @@ class SafeRow<R extends Record> {
 
   /// Reads a value. Throws if the database value is null.
   /// Throws if the key is missing from the schema or the type mismatches.
-  T require<T>(String key) {
+  T get<T>(String key) {
     _validateAccess<T>(key);
 
     final value = _raw[key];
     if (value == null) {
       throw StateError(
-          'Null Error: Column "$key" is null in DB, but require<$T> was called.');
+          'Null Error: Column "$key" is null in DB, but get<$T> was called.');
     }
     if (value is! T) {
       throw StateError(
@@ -62,13 +62,13 @@ class SafeRow<R extends Record> {
   /// Reads a primitive database value [DB] and parses it into a custom type [T].
   /// Throws if the column is null, missing from schema, or if parsing fails.
   T parse<T, DB>(String key, T Function(DB dbValue) parser) {
-    final dbValue = require<DB>(key);
+    final dbValue = get<DB>(key);
     return parser(dbValue);
   }
 
   /// Same as [parse], but allows the database value to be null.
   T? parseOptional<T, DB>(String key, T Function(DB dbValue) parser) {
-    final dbValue = read<DB>(key);
+    final dbValue = getOptional<DB>(key);
     if (dbValue == null) return null;
     return parser(dbValue);
   }

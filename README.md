@@ -37,8 +37,8 @@ final db = SqliteRecords.fromPowerSync(powersyncDb);
 final rows = await db.getAll(activeUsersQuery, (status: 'active'));
 
 for (final row in rows) {
-  final name = row.require<String>('name');
-  final age = row.read<int>('age');
+  final name = row.get<String>('name');
+  final age = row.getOptional<int>('age');
 }
 ```
 
@@ -65,8 +65,8 @@ await db.writeTransaction((tx) async {
 Use built-in extensions for common types like Enums and DateTime.
 
 ```dart
-final status = row.requireEnumByName('status', UserStatus.values);
-final createdAt = row.requireDateTime('created_at');
+final status = row.parseEnumByName('status', UserStatus.values);
+final createdAt = row.parseDateTime('created_at');
 ```
 
 ## Caveats
