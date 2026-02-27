@@ -14,6 +14,7 @@ A minimal, functional wrapper for SQLite (designed for PowerSync) that prioritiz
 ## Core Concepts
 
 ### 1. Define Queries and Commands
+
 Queries and Commands encapsulate SQL, parameter mapping, and schema tokens.
 
 ```dart
@@ -26,6 +27,7 @@ final activeUsersQuery = Query<({String status}), ({String name, int age})>(
 ```
 
 ### 2. Execute via SqliteRecords
+
 Wrap your `PowerSyncDatabase` and use the typed definitions.
 
 ```dart
@@ -41,16 +43,17 @@ for (final row in rows) {
 ```
 
 ### 3. Transactions
+
 Support for both read-only and read-write transactions with dedicated contexts.
 
 ```dart
-// Read-only transaction
+// Read-only transaction (uses SqliteRecordsReadonly context)
 await db.readTransaction((tx) async {
   final user = await tx.get(userQuery, (id: '123'));
   final settings = await tx.getAll(settingsQuery, (userId: '123'));
 });
 
-// Read-write transaction
+// Read-write transaction (uses SqliteRecords context)
 await db.writeTransaction((tx) async {
   await tx.execute(updateUserCommand, (id: '123', name: 'New Name'));
   await tx.execute(logChangeCommand, (userId: '123', action: 'update'));
@@ -58,6 +61,7 @@ await db.writeTransaction((tx) async {
 ```
 
 ### 4. Safe Parsing
+
 Use built-in extensions for common types like Enums and DateTime.
 
 ```dart
