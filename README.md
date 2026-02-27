@@ -40,7 +40,24 @@ for (final row in rows) {
 }
 ```
 
-### 3. Safe Parsing
+### 3. Transactions
+Support for both read-only and read-write transactions.
+
+```dart
+// Read-only transaction (uses SqliteReadRecords context)
+await db.readTransaction((tx) async {
+  final user = await tx.get(userQuery, (id: '123'));
+  final settings = await tx.getAll(settingsQuery, (userId: '123'));
+});
+
+// Read-write transaction (uses SqliteRecords context)
+await db.writeTransaction((tx) async {
+  await tx.execute(updateUserCommand, (id: '123', name: 'New Name'));
+  await tx.execute(logChangeCommand, (userId: '123', action: 'update'));
+});
+```
+
+### 4. Safe Parsing
 Use built-in extensions for common types like Enums and DateTime.
 
 ```dart
