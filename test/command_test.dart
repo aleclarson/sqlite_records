@@ -103,8 +103,8 @@ void main() {
       expect(cmd.getSql((id: '1')), equals('DELETE FROM users WHERE id = @id'));
     });
 
-    test('works with Command.empty', () {
-      final cmd = Command.empty('SELECT 1');
+    test('works with Command.static', () {
+      final cmd = Command.static('SELECT 1');
       expect(cmd.getSql(null), equals('SELECT 1'));
     });
 

@@ -34,7 +34,7 @@ final activeUsersQuery = Query<({String status}), ({String name, int age})>(
 );
 
 // Parameterless query
-final allUsersQuery = Query.empty<({String name})>(
+final allUsersQuery = Query.static<({String name})>(
   'SELECT name FROM users',
   schema: {'name': String},
 );

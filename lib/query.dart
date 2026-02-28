@@ -29,8 +29,8 @@ class Query<P, R extends Record> {
     required this.schema,
   });
 
-  /// Factory for parameterless queries.
-  static Query<void, R> empty<R extends Record>(
+  /// Factory for static queries.
+  static Query<void, R> static<R extends Record>(
     String sql, {
     required ResultSchema schema,
   }) {
@@ -67,8 +67,8 @@ class Command<P> {
     return (_sql!, map);
   }
 
-  /// Factory for parameterless mutations.
-  static Command<void> empty(String sql) => Command<void>(sql);
+  /// Factory for static mutations.
+  static Command<void> static(String sql) => Command<void>(sql);
 }
 
 Map<String, Object?> _resolveParams<P>(dynamic params, P? p) {
