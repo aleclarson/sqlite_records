@@ -1,19 +1,13 @@
 import 'query.dart';
 
-/// Internal interface for database-specific row data.
-abstract interface class RowData {
-  Object? operator [](String key);
-}
-
 /// [R] is the Expected Record type (enables compile-time key validation via custom linters).
-class SafeRow<R extends Record> {
-  final RowData _raw;
+abstract class Row<R extends Record> {
   final ResultSchema _schema;
 
-  const SafeRow(this._raw, this._schema);
+  const Row(this._schema);
 
   /// Unsafe, dynamic map access (bypasses schema and type checks).
-  dynamic operator [](String key) => _raw[key];
+  Object? operator [](String key);
 
   void _validateAccess<T>(String key) {
     if (!_schema.containsKey(key)) {
@@ -36,7 +30,7 @@ class SafeRow<R extends Record> {
   T? getOptional<T>(String key) {
     _validateAccess<T>(key);
 
-    final value = _raw[key];
+    final value = this[key];
     if (value != null && value is! T) {
       throw StateError(
         'DB Type Mismatch: Expected $T? for "$key", got ${value.runtimeType}.',
@@ -50,7 +44,7 @@ class SafeRow<R extends Record> {
   T get<T>(String key) {
     _validateAccess<T>(key);
 
-    final value = _raw[key];
+    final value = this[key];
     if (value == null) {
       throw StateError(
           'Null Error: Column "$key" is null in DB, but get<$T> was called.');
@@ -78,16 +72,15 @@ class SafeRow<R extends Record> {
   }
 }
 
-class SafeResultSet<R extends Record> extends Iterable<SafeRow<R>> {
-  final Iterable<RowData> _rows;
-  final ResultSchema _schema;
+class RowSet<R extends Record> extends Iterable<Row<R>> {
+  final Iterable<Row<R>> _rows;
 
-  SafeResultSet(this._rows, this._schema);
+  RowSet(this._rows);
 
   @override
-  Iterator<SafeRow<R>> get iterator =>
-      _rows.map((row) => SafeRow<R>(row, _schema)).iterator;
+  Iterator<Row<R>> get iterator => _rows.iterator;
 
   /// Returns the number of rows in the result set.
+  @override
   int get length => _rows.length;
 }

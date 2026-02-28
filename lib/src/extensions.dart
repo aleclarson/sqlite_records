@@ -1,13 +1,13 @@
-import 'safe_row.dart';
+import 'row.dart';
 
 /// Common parser logic for SQLite values.
 abstract final class SqliteParsers {
-  /// Logic for [SafeRowConvenience.parseEnumByName].
+  /// Logic for [RowConvenience.parseEnumByName].
   static T enumByName<T extends Enum>(String dbVal, Iterable<T> values) {
     return values.byName(dbVal);
   }
 
-  /// Logic for [SafeRowConvenience.parseDateTime].
+  /// Logic for [RowConvenience.parseDateTime].
   static DateTime dateTime(Object dbVal) {
     if (dbVal is int) {
       return DateTime.fromMillisecondsSinceEpoch(dbVal);
@@ -20,7 +20,7 @@ abstract final class SqliteParsers {
   }
 }
 
-extension SafeRowConvenience on SafeRow {
+extension RowConvenience on Row {
   // --- STRING ENUMS ---
 
   /// Parses a SQLite String into a Dart Enum using its name.

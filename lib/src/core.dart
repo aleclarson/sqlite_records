@@ -1,30 +1,31 @@
 import 'dart:async';
 import 'query.dart';
-import 'safe_row.dart';
+import 'row.dart';
 
 export 'query.dart';
-export 'safe_row.dart';
+export 'row.dart';
 export 'extensions.dart';
 
 /// Context for read-only operations.
 abstract interface class SqlRecordsReadonly {
   /// Fetches all rows matching the query.
-  Future<SafeResultSet<R>> getAll<P, R extends Record>(
+  Future<RowSet<R>> getAll<P, R extends Record>(
     Query<P, R> query, [
     P? params,
   ]);
 
   /// Fetches exactly one row. Throws if no row is found.
-  Future<SafeRow<R>> get<P, R extends Record>(
+  Future<Row<R>> get<P, R extends Record>(
     Query<P, R> query, [
     P? params,
   ]);
 
-  /// Fetches an optional row. Returns null if not found.
-  Future<SafeRow<R>?> getOptional<P, R extends Record>(
+  /// Fetches exactly one row or null.
+  Future<Row<R>?> getOptional<P, R extends Record>(
     Query<P, R> query, [
     P? params,
   ]);
+
 }
 
 /// Information about a mutation (INSERT, UPDATE, DELETE).
@@ -61,7 +62,7 @@ abstract interface class SqlRecords implements SqlRecordsReadonly {
 
   /// Reactively watches a query for changes.
   /// NOTE: This may not be supported by all database engines.
-  Stream<SafeResultSet<R>> watch<P, R extends Record>(
+  Stream<RowSet<R>> watch<P, R extends Record>(
     Query<P, R> query, {
     P? params,
     Duration throttle = const Duration(milliseconds: 30),

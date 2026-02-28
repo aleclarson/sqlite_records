@@ -12,9 +12,9 @@ SqlRecords SqlRecordsPowerSync(PowerSyncDatabase db) =>
     PowerSyncWriteContext(db);
 
 @internal
-class PowerSyncRowData implements RowData {
+class PowerSyncRow<R extends Record> extends Row<R> {
   final sqlite.Row _row;
-  PowerSyncRowData(this._row);
+  PowerSyncRow(this._row, super.schema);
 
   @override
   Object? operator [](String key) => _row[key];
@@ -40,28 +40,28 @@ class PowerSyncReadContext implements SqlRecordsReadonly {
   PowerSyncReadContext(this._readCtx);
 
   @override
-  Future<SafeResultSet<R>> getAll<P, R extends Record>(Query<P, R> query,
+  Future<RowSet<R>> getAll<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final results = await _readCtx.getAll(sql, args);
-    return SafeResultSet<R>(
-        results.map((row) => PowerSyncRowData(row)), query.schema);
+    return RowSet<R>(
+        results.map((row) => PowerSyncRow<R>(row, query.schema)));
   }
 
   @override
-  Future<SafeRow<R>> get<P, R extends Record>(Query<P, R> query,
+  Future<Row<R>> get<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final row = await _readCtx.get(sql, args);
-    return SafeRow<R>(PowerSyncRowData(row), query.schema);
+    return PowerSyncRow<R>(row, query.schema);
   }
 
   @override
-  Future<SafeRow<R>?> getOptional<P, R extends Record>(Query<P, R> query,
+  Future<Row<R>?> getOptional<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final row = await _readCtx.getOptional(sql, args);
-    return row != null ? SafeRow<R>(PowerSyncRowData(row), query.schema) : null;
+    return row != null ? PowerSyncRow<R>(row, query.schema) : null;
   }
 }
 
@@ -99,7 +99,7 @@ class PowerSyncWriteContext extends PowerSyncReadContext implements SqlRecords {
   }
 
   @override
-  Stream<SafeResultSet<R>> watch<P, R extends Record>(Query<P, R> query,
+  Stream<RowSet<R>> watch<P, R extends Record>(Query<P, R> query,
       {P? params,
       Duration throttle = const Duration(milliseconds: 30),
       Iterable<String>? triggerOnTables}) {
@@ -112,8 +112,8 @@ class PowerSyncWriteContext extends PowerSyncReadContext implements SqlRecords {
               parameters: args,
               throttle: throttle,
               triggerOnTables: triggerOnTables)
-          .map((results) => SafeResultSet<R>(
-              results.map((row) => PowerSyncRowData(row)), query.schema));
+          .map((results) => RowSet<R>(
+              results.map((row) => PowerSyncRow<R>(row, query.schema))));
     }
     throw UnsupportedError(
         'watch() is only supported on the main database connection.');

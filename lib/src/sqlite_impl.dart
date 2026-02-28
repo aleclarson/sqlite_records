@@ -10,9 +10,9 @@ export 'core.dart';
 SqlRecords SqlRecordsSqlite(sqlite.Database db) => SqliteWriteContext(db);
 
 @internal
-class SqliteRowData implements RowData {
+class SqliteRow<R extends Record> extends Row<R> {
   final sqlite.Row _row;
-  SqliteRowData(this._row);
+  SqliteRow(this._row, super.schema);
 
   @override
   Object? operator [](String key) => _row[key];
@@ -35,29 +35,29 @@ class SqliteReadContext implements SqlRecordsReadonly {
   SqliteReadContext(this._db);
 
   @override
-  Future<SafeResultSet<R>> getAll<P, R extends Record>(Query<P, R> query,
+  Future<RowSet<R>> getAll<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final results = _db.select(sql, args);
-    return SafeResultSet<R>(
-        results.map((row) => SqliteRowData(row)), query.schema);
+    return RowSet<R>(
+        results.map((row) => SqliteRow<R>(row, query.schema)));
   }
 
   @override
-  Future<SafeRow<R>> get<P, R extends Record>(Query<P, R> query,
+  Future<Row<R>> get<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final results = _db.select(sql, args);
-    return SafeRow<R>(SqliteRowData(results.first), query.schema);
+    return SqliteRow<R>(results.first, query.schema);
   }
 
   @override
-  Future<SafeRow<R>?> getOptional<P, R extends Record>(Query<P, R> query,
+  Future<Row<R>?> getOptional<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final results = _db.select(sql, args);
     if (results.isEmpty) return null;
-    return SafeRow<R>(SqliteRowData(results.first), query.schema);
+    return SqliteRow<R>(results.first, query.schema);
   }
 }
 
@@ -88,7 +88,7 @@ class SqliteWriteContext extends SqliteReadContext implements SqlRecords {
   }
 
   @override
-  Stream<SafeResultSet<R>> watch<P, R extends Record>(Query<P, R> query,
+  Stream<RowSet<R>> watch<P, R extends Record>(Query<P, R> query,
       {P? params,
       Duration throttle = const Duration(milliseconds: 30),
       Iterable<String>? triggerOnTables}) {

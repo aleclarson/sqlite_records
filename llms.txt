@@ -7,7 +7,7 @@
 - **Multi-Engine Support**: Separate adapters for SQLite (via PowerSync or `sqlite3`) or PostgreSQL.
 - **Record-Based Parameters**: Use Dart Records to define query parameters, getting compile-time safety at the call site.
 - **Schema-Aware Results**: Explicitly define expected result schemas using standard Dart types.
-- **SafeRow Access**: Access row data with `get<T>`, `getOptional<T>`, and `parse<T, DB>`, catching schema or type drift immediately.
+- **Row Access**: Access row data with `get<T>`, `getOptional<T>`, and `parse<T, DB>`, catching schema or type drift immediately.
 - **Reactive Queries**: Built-in support for `watch` to receive streams of result sets (PowerSync only).
 - **Batch Operations**: Efficient `executeBatch` for bulk mutations.
 - **Zero Boilerplate**: No code generation or complex ORM configuration required.
@@ -66,7 +66,7 @@ final db = SqlRecordsPostgres(postgresSession);
 The `SqlRecords` interface provides methods for executing queries and mutations.
 
 #### `getAll`, `get`, `getOptional`
-Returns `SafeResultSet<R>` or `SafeRow<R>`.
+Returns `RowSet<R>` or `Row<R>`.
 
 ```dart
 final rows = await db.getAll(activeUsersQuery, (status: 'active'));
@@ -102,7 +102,7 @@ Reactive queries are supported via `watch`.
 ```dart
 final stream = db.watch(activeUsersQuery, params: (status: 'active'));
 await for (final resultSet in stream) {
-  // resultSet is SafeResultSet<R>
+  // resultSet is RowSet<R>
 }
 ```
 
@@ -119,14 +119,14 @@ final result = await db.writeTransaction((tx) async {
 });
 ```
 
-### 7. SafeRow & Data Parsing
-`SafeRow` wraps the raw database row and enforces the schema.
+### 7. Row & Data Parsing
+`Row` wraps the raw database row and enforces the schema.
 
 - `row.get<T>(key)`: Type-safe, non-nullable access.
 - `row.getOptional<T>(key)`: Type-safe, nullable access.
 - `row.parse<T, DB>(key, parser)`: Custom parsing logic.
 
-#### Common Parsers (`SafeRowConvenience`)
+#### Common Parsers (`RowConvenience`)
 - `row.parseEnumByName<T extends Enum>(key, values)`: Parses a string into an enum.
 - `row.parseDateTime(key)`: Parses an ISO-8601 string or epoch integer into a `DateTime`.
 - `row.parseEnumByNameOptional<T extends Enum>(key, values)`: Nullable version of enum parsing.

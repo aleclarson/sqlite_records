@@ -9,9 +9,9 @@ SqlRecords SqlRecordsPostgres(pg.Session session) =>
     PostgresWriteContext(session);
 
 @internal
-class PostgresRowData implements RowData {
+class PostgresRow<R extends Record> extends Row<R> {
   final pg.ResultRow _row;
-  PostgresRowData(this._row);
+  PostgresRow(this._row, super.schema);
 
   @override
   Object? operator [](String key) {
@@ -38,32 +38,32 @@ class PostgresReadContext implements SqlRecordsReadonly {
   PostgresReadContext(this._session);
 
   @override
-  Future<SafeResultSet<R>> getAll<P, R extends Record>(Query<P, R> query,
+  Future<RowSet<R>> getAll<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, map) = query.apply(params);
     final result = await _session.execute(pg.Sql.named(sql), parameters: map);
-    return SafeResultSet<R>(
-        result.map((row) => PostgresRowData(row)), query.schema);
+    return RowSet<R>(
+        result.map((row) => PostgresRow<R>(row, query.schema)));
   }
 
   @override
-  Future<SafeRow<R>> get<P, R extends Record>(Query<P, R> query,
+  Future<Row<R>> get<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, map) = query.apply(params);
     final result = await _session.execute(pg.Sql.named(sql), parameters: map);
     if (result.isEmpty) {
       throw StateError('Query returned no rows');
     }
-    return SafeRow<R>(PostgresRowData(result.first), query.schema);
+    return PostgresRow<R>(result.first, query.schema);
   }
 
   @override
-  Future<SafeRow<R>?> getOptional<P, R extends Record>(Query<P, R> query,
+  Future<Row<R>?> getOptional<P, R extends Record>(Query<P, R> query,
       [P? params]) async {
     final (sql, map) = query.apply(params);
     final result = await _session.execute(pg.Sql.named(sql), parameters: map);
     if (result.isEmpty) return null;
-    return SafeRow<R>(PostgresRowData(result.first), query.schema);
+    return PostgresRow<R>(result.first, query.schema);
   }
 }
 
@@ -89,7 +89,7 @@ class PostgresWriteContext extends PostgresReadContext implements SqlRecords {
   }
 
   @override
-  Stream<SafeResultSet<R>> watch<P, R extends Record>(Query<P, R> query,
+  Stream<RowSet<R>> watch<P, R extends Record>(Query<P, R> query,
       {P? params,
       Duration throttle = const Duration(milliseconds: 30),
       Iterable<String>? triggerOnTables}) {
