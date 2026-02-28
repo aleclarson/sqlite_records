@@ -56,9 +56,26 @@ final deleteAllCommand = Command.static('DELETE FROM users');
 #### Dynamic Commands (Patching)
 - **`UpdateCommand<P>`**: Generates an `UPDATE` statement, skipping any `null` values.
 - **`InsertCommand<P>`**: Generates an `INSERT` statement using only non-null values.
+- **`DeleteCommand<P>`**: Generates a `DELETE` statement by primary key.
 - **`SQL(value)`**: A wrapper to distinguish between "omit this field" (plain `null`) and "set this field to NULL" (`SQL(null)`).
 
-### 2. Initialization
+### 2. RETURNING Clauses
+Mutations can be converted into queries using the `returning` method. This is useful for retrieving generated IDs or updated timestamps.
+
+```dart
+final insertUser = InsertCommand(table: 'users', params: (p) => {'name': p.name});
+
+// Convert command to a query
+final insertAndReturn = insertUser.returning<({int id, String name})>({
+  'id': int,
+  'name': String,
+});
+
+final row = await db.get(insertAndReturn, (name: 'New User'));
+print('Generated ID: ${row.get<int>('id')}');
+```
+
+### 3. Initialization
 
 #### SQLite / PowerSync
 ```dart
@@ -78,7 +95,7 @@ import 'package:sql_records/postgres.dart';
 final db = SqlRecordsPostgres(postgresSession);
 ```
 
-### 3. Executing Queries
+### 4. Executing Queries
 The `SqlRecords` interface provides methods for executing queries and mutations.
 
 #### `getAll`, `get`, `getOptional`
@@ -96,7 +113,7 @@ for (final row in rows) {
 }
 ```
 
-### 4. Executing Mutations
+### 5. Executing Mutations
 Mutations use the `Command<P>` class.
 
 #### `execute`
@@ -122,7 +139,7 @@ await db.executeBatch(insertUserCommand, [
 ]);
 ```
 
-### 5. Reactive Queries
+### 6. Reactive Queries
 Reactive queries are supported via `watch`.
 
 ```dart
@@ -132,7 +149,7 @@ await for (final resultSet in stream) {
 }
 ```
 
-### 6. Transactions
+### 7. Transactions
 Transactions provide a scope for multiple operations.
 
 - `readTransaction`: Provides a read-only context (`SqlRecordsReadonly`).
@@ -145,7 +162,7 @@ final result = await db.writeTransaction((tx) async {
 });
 ```
 
-### 7. Row & Data Parsing
+### 8. Row & Data Parsing
 `Row` wraps the raw database row and enforces the schema.
 
 - `row.get<T>(key)`: Type-safe, non-nullable access.
@@ -160,6 +177,7 @@ final result = await db.writeTransaction((tx) async {
 
 ## Caveats & Troubleshooting
 - **Named Parameters**: Use the `@name` syntax for SQLite and PostgreSQL.
-- **Postgres ID**: `MutationResult.lastInsertId` is always `null` for Postgres unless using `RETURNING` clauses in the query.
+- **Postgres ID**: `MutationResult.lastInsertId` is always `null` for Postgres. Use `RETURNING` clauses via `command.returning(schema)` to retrieve generated IDs.
+- **Postgres affectedRows**: Supported for all mutations.
 - **Watch**: `watch()` is currently only supported for PowerSync.
 - **Type Safety**: Parameters (`P`) must be Dart Records or `void`. Result sets (`R`) must be Dart Records.
