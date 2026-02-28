@@ -75,6 +75,7 @@ class PowerSyncWriteContext extends PowerSyncReadContext implements SqlRecords {
   @override
   Future<MutationResult> execute<P>(Command<P> mutation, [P? params]) async {
     final (sql, map) = mutation.apply(params);
+    if (sql == NoOpCommand) return const NoOpMutationResult();
     final (_, args) = translateSql(sql, map);
     final result = await _writeCtx.execute(sql, args);
     return PowerSyncMutationResult(result);
@@ -87,6 +88,7 @@ class PowerSyncWriteContext extends PowerSyncReadContext implements SqlRecords {
 
     for (final p in paramsList) {
       final (sql, map) = mutation.apply(p);
+      if (sql == NoOpCommand) continue;
       final (_, args) = translateSql(sql, map);
       batches.putIfAbsent(sql, () => []).add(args);
     }

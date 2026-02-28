@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Updated `UpdateCommand` and `InsertCommand` to hard-code `NULL` when using the `SQL` wrapper, instead of passing it as a parameter. This improves compatibility with some database drivers.
+
 ## 0.4.0
 
 - Renamed package to `sql_records`.

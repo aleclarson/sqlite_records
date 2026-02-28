@@ -68,6 +68,7 @@ class SqliteWriteContext extends SqliteReadContext implements SqlRecords {
   @override
   Future<MutationResult> execute<P>(Command<P> mutation, [P? params]) async {
     final (sql, map) = mutation.apply(params);
+    if (sql == NoOpCommand) return const NoOpMutationResult();
     final (_, args) = translateSql(sql, map);
     _db.execute(sql, args);
     return SqliteMutationResult(
@@ -80,6 +81,7 @@ class SqliteWriteContext extends SqliteReadContext implements SqlRecords {
   Future<void> executeBatch<P>(Command<P> mutation, List<P> paramsList) async {
     for (final p in paramsList) {
       final (sql, map) = mutation.apply(p);
+      if (sql == NoOpCommand) continue;
       final (_, args) = translateSql(sql, map);
       _db.execute(sql, args);
     }

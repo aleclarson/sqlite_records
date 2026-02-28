@@ -25,8 +25,8 @@ void main() {
     });
 
     test('generates no-op SQL when no fields are updated', () {
-      final sql = patchUser.getSql((id: '1', name: null, age: null));
-      expect(sql, equals('SELECT 1 WHERE 0'));
+      final (sql, _) = patchUser.apply((id: '1', name: null, age: null));
+      expect(sql, equals(NoOpCommand));
     });
 
     test('throws if primary key is missing', () {
@@ -49,9 +49,10 @@ void main() {
           'age': p.age,
         },
       );
-      final sql =
-          patchDynamic.getSql((id: '1', name: const SQL(null), age: null));
-      expect(sql, equals('UPDATE users SET name = @name WHERE id = @id'));
+      final (sql, map) =
+          patchDynamic.apply((id: '1', name: const SQL(null), age: null));
+      expect(sql, equals('UPDATE users SET name = NULL WHERE id = @id'));
+      expect(map, equals({'id': '1'}));
     });
   });
 
@@ -88,17 +89,19 @@ void main() {
           'age': p.age,
         },
       );
-      final sql =
-          insertDynamic.getSql((id: '1', name: const SQL(null), age: null));
-      expect(sql, equals('INSERT INTO users (id, name) VALUES (@id, @name)'));
+      final (sql, map) =
+          insertDynamic.apply((id: '1', name: const SQL(null), age: null));
+      expect(sql, equals('INSERT INTO users (id, name) VALUES (@id, NULL)'));
+      expect(map, equals({'id': '1'}));
     });
 
-    test('throws if no values are provided', () {
-      final sqlThrows = InsertCommand<({String? id})>(
+    test('generates DEFAULT VALUES SQL when no values are provided', () {
+      final insertOptional = InsertCommand<({String? id, String? name})>(
         table: 'users',
-        params: (p) => {'id': p.id},
+        params: (p) => {'id': p.id, 'name': p.name},
       );
-      expect(() => sqlThrows.getSql((id: null)), throwsArgumentError);
+      final (sql, _) = insertOptional.apply((id: null, name: null));
+      expect(sql, equals('INSERT INTO users DEFAULT VALUES'));
     });
   });
 

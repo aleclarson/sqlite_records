@@ -36,6 +36,15 @@ abstract interface class MutationResult {
   Object? get lastInsertId;
 }
 
+/// A [MutationResult] for commands that were skipped (no-op).
+class NoOpMutationResult implements MutationResult {
+  const NoOpMutationResult();
+  @override
+  int? get affectedRows => 0;
+  @override
+  Object? get lastInsertId => null;
+}
+
 /// The core executor interface, supporting mutations and transactions.
 abstract interface class SqlRecords implements SqlRecordsReadonly {
   /// Executes a single mutation.

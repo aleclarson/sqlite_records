@@ -78,6 +78,9 @@ Map<String, Object?> _resolveParams<P>(dynamic params, P? p) {
   throw ArgumentError('params must be a Map<String, Object?> or a ParamMapper');
 }
 
+/// Sentinel value for a command that does nothing (e.g., no fields to update).
+const String NoOpCommand = 'NOOP';
+
 /// A specialized [Command] for "patch" updates.
 ///
 /// It dynamically generates an UPDATE statement based on the non-null values
@@ -95,25 +98,35 @@ class UpdateCommand<P> extends Command<P> {
 
   @override
   (String, Map<String, Object?>) apply(P? p) {
-    final map = _resolveParams<P>(params, p);
+    final rawMap = _resolveParams<P>(params, p);
+    final finalMap = <String, Object?>{};
     final updates = <String>[];
     final where = <String>[];
 
-    for (final key in map.keys) {
+    for (final key in rawMap.keys) {
+      final value = rawMap[key];
+
       if (primaryKeys.contains(key)) {
         where.add('$key = @$key');
+        finalMap[key] = value;
         continue;
       }
 
-      // Skip plain nulls for patching, but allow SQL(null)
-      if (map[key] != null || map[key] is SQL) {
+      if (value is SQL) {
+        updates.add('$key = NULL');
+        continue;
+      }
+
+      // Skip plain nulls for patching
+      if (value != null) {
         updates.add('$key = @$key');
+        finalMap[key] = value;
       }
     }
 
     if (updates.isEmpty) {
       // Return a no-op SQL if no fields were provided for update.
-      return ('SELECT 1 WHERE 0', map);
+      return (NoOpCommand, const {});
     }
 
     if (where.isEmpty) {
@@ -122,7 +135,7 @@ class UpdateCommand<P> extends Command<P> {
 
     final sql =
         'UPDATE $table SET ${updates.join(', ')} WHERE ${where.join(' AND ')}';
-    return (sql, map);
+    return (sql, finalMap);
   }
 }
 
@@ -141,25 +154,35 @@ class InsertCommand<P> extends Command<P> {
 
   @override
   (String, Map<String, Object?>) apply(P? p) {
-    final map = _resolveParams<P>(params, p);
+    final rawMap = _resolveParams<P>(params, p);
+    final finalMap = <String, Object?>{};
     final cols = <String>[];
     final vals = <String>[];
 
-    for (final entry in map.entries) {
-      // Skip plain nulls, but allow SQL(null)
-      if (entry.value != null || entry.value is SQL) {
-        cols.add(entry.key);
-        vals.add('@${entry.key}');
+    for (final entry in rawMap.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      if (value is SQL) {
+        cols.add(key);
+        vals.add('NULL');
+        continue;
+      }
+
+      // Skip plain nulls
+      if (value != null) {
+        cols.add(key);
+        vals.add('@$key');
+        finalMap[key] = value;
       }
     }
 
     if (cols.isEmpty) {
-      throw ArgumentError(
-          'InsertCommand requires at least one non-null value.');
+      return ('INSERT INTO $table DEFAULT VALUES', const {});
     }
 
     final sql =
         'INSERT INTO $table (${cols.join(', ')}) VALUES (${vals.join(', ')})';
-    return (sql, map);
+    return (sql, finalMap);
   }
 }
