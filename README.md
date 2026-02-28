@@ -1,4 +1,4 @@
-# SqliteRecords
+# SqlRecords
 
 A minimal, functional wrapper for SQLite (designed for PowerSync) and PostgreSQL that prioritizes type safety for parameters, "best-effort" result validation, and a "declare-what-you-use" strategy using Dart 3 Records.
 
@@ -20,14 +20,14 @@ Import the adapter for your database and wrap your connection.
 
 #### For SQLite / PowerSync
 ```dart
-import 'package:sqlite_records/sqlite_records.dart';
+import 'package:sql_records/powersync_records.dart';
 
 final db = SqlRecordsPowerSync(powersyncDb);
 ```
 
 #### For PostgreSQL
 ```dart
-import 'package:sqlite_records/postgres_records.dart';
+import 'package:sql_records/postgres_records.dart';
 
 final db = SqlRecordsPostgres(postgresSession);
 ```
@@ -111,7 +111,7 @@ final createdAt = row.parseDateTime('created_at');
 
 ## Caveats
 
-- **Named Parameters**: Parameters use `@name` syntax in SQL.
+- **Named Parameters**: Parameters use `@name` syntax in SQL. For SQLite, they are translated to positional `?` parameters. For Postgres, they use the native `Sql.named` support.
 - **Runtime Validation**: While parameters are checked at compile-time, result validation (schema/types) happens at runtime.
 - **Record Tokens**: The `R` record type in `Query<P, R>` is a "linting token" for developer guidance; dot-access on rows (e.g. `row.name`) is not yet supported.
 

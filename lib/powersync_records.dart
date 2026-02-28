@@ -4,6 +4,18 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:meta/meta.dart';
 import 'core.dart';
 
+export 'core.dart';
+
+/// Creates a [SqlRecords] instance from a [PowerSyncDatabase].
+SqlRecords SqlRecordsPowerSync(PowerSyncDatabase db) =>
+    PowerSyncWriteContext(db);
+
+/// Alias for [SqlRecords] to maintain backward compatibility.
+typedef SqliteRecords = SqlRecords;
+
+/// Alias for [SqlRecordsReadonly] to maintain backward compatibility.
+typedef SqliteRecordsReadonly = SqlRecordsReadonly;
+
 @internal
 class SqliteRowData implements RowData {
   final sqlite.Row _row;
