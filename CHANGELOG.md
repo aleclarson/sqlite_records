@@ -1,6 +1,12 @@
 ## 0.4.0
 
+- Renamed package to `sql_records`.
 - Added support for PostgreSQL via the `postgres` package.
+- Added support for synchronous SQLite via the `sqlite3` package.
+- Restructured package with engine-specific entry points:
+  - `package:sql_records/powersync.dart`
+  - `package:sql_records/sqlite.dart`
+  - `package:sql_records/postgres.dart`
 - Generalized `SqliteRecords` to `SqlRecords` to support multiple database engines.
 - `SqliteRecords` and `SqliteRecordsReadonly` are now type aliases for backward compatibility.
 - Introduced `MutationResult` to provide a unified result for `execute` across engines.
