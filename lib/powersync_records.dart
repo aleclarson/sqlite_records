@@ -9,11 +9,17 @@ class _PowerSyncReadContext implements SqliteRecordsReadonly {
   /// Translates named parameters (@name) into positional ones (?) for PowerSync.
   (String, List<Object?>) _prepare<P>(
       String sql, ParamMapper<P>? mapper, P? params) {
-    if (mapper == null || params == null) {
-      return (sql, const []);
-    }
+    final map = _resolveParams(mapper, params);
+    if (map == null) return (sql, const []);
+    return _translateSql(sql, map);
+  }
 
-    final map = mapper(params);
+  Map<String, Object?>? _resolveParams<P>(ParamMapper<P>? mapper, P? params) {
+    if (mapper == null || params == null) return null;
+    return mapper(params);
+  }
+
+  (String, List<Object?>) _translateSql(String sql, Map<String, Object?> map) {
     final List<Object?> args = [];
     final pattern = RegExp(r'@([a-zA-Z0-9_]+)');
 
@@ -63,23 +69,25 @@ class _PowerSyncWriteContext extends _PowerSyncReadContext
 
   @override
   Future<sqlite.ResultSet> execute<P>(Command<P> mutation, [P? params]) async {
-    final (sql, args) = _prepare(mutation.sql, mutation.params, params);
+    final (sql, map) = mutation.apply(params);
+    final (_, args) = _translateSql(sql, map);
     return _writeCtx.execute(sql, args);
   }
 
   @override
   Future<void> executeBatch<P>(Command<P> mutation, List<P> paramsList) async {
-    final List<List<Object?>> allArgs = [];
-    String? finalSql;
+    // Grouping by SQL to allow batching of identical statements.
+    // For UpdateCommand/InsertCommand, different params can result in different SQL.
+    final Map<String, List<List<Object?>>> batches = {};
 
     for (final p in paramsList) {
-      final (sql, args) = _prepare(mutation.sql, mutation.params, p);
-      finalSql ??= sql;
-      allArgs.add(args);
+      final (sql, map) = mutation.apply(p);
+      final (_, args) = _translateSql(sql, map);
+      batches.putIfAbsent(sql, () => []).add(args);
     }
 
-    if (finalSql != null) {
-      return _writeCtx.executeBatch(finalSql, allArgs);
+    for (final entry in batches.entries) {
+      await _writeCtx.executeBatch(entry.key, entry.value);
     }
   }
 
