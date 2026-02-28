@@ -67,8 +67,33 @@ class Command<P> {
     return (_sql!, map);
   }
 
+  /// Creates a query from this command with a RETURNING clause.
+  Query<P, R> returning<R extends Record>(
+    ResultSchema schema, {
+    List<String>? columns,
+  }) {
+    return _ReturningQuery<P, R>(this, schema, columns);
+  }
+
   /// Factory for static mutations.
   static Command<void> static(String sql) => Command<void>(sql);
+}
+
+class _ReturningQuery<P, R extends Record> extends Query<P, R> {
+  final Command<P> command;
+  final List<String>? columns;
+
+  _ReturningQuery(this.command, ResultSchema schema, this.columns)
+      : super('', schema: schema, params: command.params);
+
+  @override
+  (String, Map<String, Object?>) apply(P? p) {
+    var (sql, map) = command.apply(p);
+    if (sql != NoOpCommand && columns != null && columns!.isNotEmpty) {
+      sql = '$sql RETURNING ${columns!.join(', ')}';
+    }
+    return (sql, map);
+  }
 }
 
 Map<String, Object?> _resolveParams<P>(dynamic params, P? p) {
@@ -89,13 +114,11 @@ const String NoOpCommand = 'NOOP';
 class UpdateCommand<P> extends Command<P> {
   final String table;
   final List<String> primaryKeys;
-  final List<String>? returning;
 
   const UpdateCommand({
     required this.table,
     required this.primaryKeys,
     required dynamic params,
-    this.returning,
   }) : super._dynamic(params: params);
 
   @override
@@ -135,11 +158,8 @@ class UpdateCommand<P> extends Command<P> {
       throw ArgumentError('UpdateCommand requires at least one primary key.');
     }
 
-    final sqlBase =
+    final sql =
         'UPDATE $table SET ${updates.join(', ')} WHERE ${where.join(' AND ')}';
-    final sql = returning != null && returning!.isNotEmpty
-        ? '$sqlBase RETURNING ${returning!.join(', ')}'
-        : sqlBase;
     return (sql, finalMap);
   }
 }
@@ -151,12 +171,10 @@ class UpdateCommand<P> extends Command<P> {
 /// for omitted columns.
 class InsertCommand<P> extends Command<P> {
   final String table;
-  final List<String>? returning;
 
   const InsertCommand({
     required this.table,
     required dynamic params,
-    this.returning,
   }) : super._dynamic(params: params);
 
   @override
@@ -185,18 +203,11 @@ class InsertCommand<P> extends Command<P> {
     }
 
     if (cols.isEmpty) {
-      final sqlBase = 'INSERT INTO $table DEFAULT VALUES';
-      final sql = returning != null && returning!.isNotEmpty
-          ? '$sqlBase RETURNING ${returning!.join(', ')}'
-          : sqlBase;
-      return (sql, const {});
+      return ('INSERT INTO $table DEFAULT VALUES', const {});
     }
 
-    final sqlBase =
+    final sql =
         'INSERT INTO $table (${cols.join(', ')}) VALUES (${vals.join(', ')})';
-    final sql = returning != null && returning!.isNotEmpty
-        ? '$sqlBase RETURNING ${returning!.join(', ')}'
-        : sqlBase;
     return (sql, finalMap);
   }
 }
@@ -205,13 +216,11 @@ class InsertCommand<P> extends Command<P> {
 class DeleteCommand<P> extends Command<P> {
   final String table;
   final List<String> primaryKeys;
-  final List<String>? returning;
 
   const DeleteCommand({
     required this.table,
     required this.primaryKeys,
     required dynamic params,
-    this.returning,
   }) : super._dynamic(params: params);
 
   @override
@@ -231,10 +240,7 @@ class DeleteCommand<P> extends Command<P> {
       throw ArgumentError('DeleteCommand requires at least one primary key.');
     }
 
-    final sqlBase = 'DELETE FROM $table WHERE ${where.join(' AND ')}';
-    final sql = returning != null && returning!.isNotEmpty
-        ? '$sqlBase RETURNING ${returning!.join(', ')}'
-        : sqlBase;
+    final sql = 'DELETE FROM $table WHERE ${where.join(' AND ')}';
     return (sql, finalMap);
   }
 }
