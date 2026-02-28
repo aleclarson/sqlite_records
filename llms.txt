@@ -51,6 +51,23 @@ final updateUserCommand = Command<({String id, String name})>(
 );
 ```
 
+#### Dynamic Commands (Patching)
+Specialized `Command` subclasses that generate SQL dynamically based on which parameters are non-null.
+
+- **`UpdateCommand<P>`**: Generates an `UPDATE` statement, skipping any `null` values in the parameter map. Requires a list of `primaryKeys` to build the `WHERE` clause.
+- **`InsertCommand<P>`**: Generates an `INSERT` statement using only non-null values, allowing the database to apply defaults for omitted columns.
+
+```dart
+final patchUser = UpdateCommand<({String id, String? name, int? age})>(
+  table: 'users',
+  primaryKeys: ['id'],
+  params: (p) => {'id': p.id, 'name': p.name, 'age': p.age},
+);
+
+// Only name is updated, age is skipped.
+await db.execute(patchUser, (id: '1', name: 'New Name', age: null));
+```
+
 ### 2. Initialization
 Wrap your `PowerSyncDatabase` instance to start using the library.
 

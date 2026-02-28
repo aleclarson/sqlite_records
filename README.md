@@ -26,6 +26,37 @@ final activeUsersQuery = Query<({String status}), ({String name, int age})>(
 );
 ```
 
+#### Dynamic Commands (Patching)
+
+Specialized commands that dynamically generate SQL based on the provided parameters, allowing for easy "patch" updates and partial inserts.
+
+```dart
+// UpdateCommand dynamically builds the SET clause, skipping null values.
+final patchUser = UpdateCommand<({String id, String? name, int? age})>(
+  table: 'users',
+  primaryKeys: ['id'],
+  params: (p) => {
+    'id': p.id,
+    'name': p.name,
+    'age': p.age,
+  },
+);
+
+// Only 'name' will be updated in the database
+await db.execute(patchUser, (id: '123', name: 'New Name', age: null));
+
+// InsertCommand dynamically builds the COLUMNS and VALUES clauses,
+// allowing the database to apply default values for omitted columns.
+final insertUser = InsertCommand<({String id, String? name, int? age})>(
+  table: 'users',
+  params: (p) => {
+    'id': p.id,
+    'name': p.name,
+    'age': p.age,
+  },
+);
+```
+
 ### 2. Execute via SqliteRecords
 
 Wrap your `PowerSyncDatabase` and use the typed definitions.
