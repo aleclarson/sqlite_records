@@ -70,6 +70,13 @@ await db.execute(patchUser, (id: '1', name: 'New Name', age: null));
 
 // Explicitly set name to NULL in the database.
 await db.execute(patchUser, (id: '1', name: const SQL(null), age: null));
+
+final insertUser = InsertCommand<({String id, String name})>(
+  table: 'users',
+  params: (p) => {'id': p.id, 'name': p.name},
+);
+
+await db.execute(insertUser, (id: '456', name: 'Alice'));
 ```
 
 ### 2. Initialization

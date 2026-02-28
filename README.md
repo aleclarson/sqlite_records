@@ -4,76 +4,71 @@ A minimal, functional wrapper for SQLite (designed for PowerSync) that prioritiz
 
 ## Features
 
-- **Type-Safe Parameters**: Use Dart Records to define query parameters, ensuring compile-time safety at the call site.
+- **Type-Safe Parameters**: Use Dart Records to define query parameters, ensuring compile-time safety.
+- **Dynamic Patching**: Specialized commands for partial updates and inserts without boilerplate SQL.
 - **Schema-Aware Results**: Define expected result schemas using standard Dart types.
 - **SafeRow Access**: Access row data with `get<T>`, `getOptional<T>`, and `parse<T, DB>`, catching schema or type drift immediately.
 - **Reactive Queries**: Built-in support for `watch` to receive streams of result sets.
-- **Batch Operations**: Efficient `executeBatch` for bulk mutations.
 - **Zero Boilerplate**: No code generation required.
 
 ## Core Concepts
 
-### 1. Define Queries and Commands
+### 1. Initialization
 
-Queries and Commands encapsulate SQL, parameter mapping, and schema tokens.
+Wrap your `PowerSyncDatabase` to start using the library.
 
 ```dart
-// Define the query with typed parameters (P) and a result token (R)
+final db = SqliteRecords.fromPowerSync(powersyncDb);
+```
+
+### 2. Queries and Commands
+
+Queries (READ) and Commands (WRITE) encapsulate SQL, parameter mapping, and schema tokens.
+
+#### Standard Queries (READ)
+```dart
 final activeUsersQuery = Query<({String status}), ({String name, int age})>(
   'SELECT name, age FROM users WHERE status = @status',
   schema: {'name': String, 'age': int},
   params: (p) => {'status': p.status},
 );
+
+// Execute and access results
+final rows = await db.getAll(activeUsersQuery, (status: 'active'));
+for (final row in rows) {
+  final name = row.get<String>('name');
+}
 ```
 
-#### Dynamic Commands (Patching)
-
-Specialized commands that dynamically generate SQL based on the provided parameters, allowing for easy "patch" updates and partial inserts.
+#### Dynamic Commands (PATCH / INSERT)
+Specialized commands generate SQL dynamically based on provided parameters.
 
 ```dart
 // UpdateCommand dynamically builds the SET clause, skipping null values.
 final patchUser = UpdateCommand<({String id, String? name, int? age})>(
   table: 'users',
   primaryKeys: ['id'],
-  params: (p) => {
-    'id': p.id,
-    'name': p.name,
-    'age': p.age,
-  },
+  params: (p) => {'id': p.id, 'name': p.name, 'age': p.age},
 );
 
-// Only 'name' will be updated in the database
+// Only 'name' is updated in the database
 await db.execute(patchUser, (id: '123', name: 'New Name', age: null));
 
-// Use the SQL wrapper to explicitly set a field to NULL
-await db.execute(patchUser, (id: '123', name: const SQL(null), age: null));
-
-// InsertCommand dynamically builds the COLUMNS and VALUES clauses,
-// allowing the database to apply default values for omitted columns.
-final insertUser = InsertCommand<({String id, String? name, int? age})>(
+// InsertCommand dynamically builds COLUMNS/VALUES, allowing for DB defaults.
+final insertUser = InsertCommand<({String id, String? name})>(
   table: 'users',
-  params: (p) => {
-    'id': p.id,
-    'name': p.name,
-    'age': p.age,
-  },
+  params: (p) => {'id': p.id, 'name': p.name},
 );
+
+await db.execute(insertUser, (id: '456', name: 'Alice'));
 ```
 
-### 2. Execute via SqliteRecords
-
-Wrap your `PowerSyncDatabase` and use the typed definitions.
+#### The `SQL` Wrapper
+Use `SQL(value)` to distinguish between "omit this field" (plain `null`) and "explicitly set to NULL" (`SQL(null)`).
 
 ```dart
-final db = SqliteRecords.fromPowerSync(powersyncDb);
-
-// Result is a SafeResultSet containing SafeRows
-final rows = await db.getAll(activeUsersQuery, (status: 'active'));
-
-for (final row in rows) {
-  final name = row.get<String>('name');
-  final age = row.getOptional<int>('age');
-}
+// Explicitly set 'age' to NULL while skipping 'name' update
+await db.execute(patchUser, (id: '123', name: null, age: const SQL(null)));
 ```
 
 ### 3. Transactions
@@ -81,16 +76,15 @@ for (final row in rows) {
 Support for both read-only and read-write transactions with dedicated contexts.
 
 ```dart
-// Read-only transaction (uses SqliteRecordsReadonly context)
+// Read-only transaction
 await db.readTransaction((tx) async {
   final user = await tx.get(userQuery, (id: '123'));
   final settings = await tx.getAll(settingsQuery, (userId: '123'));
 });
 
-// Read-write transaction (uses SqliteRecords context)
+// Read-write transaction
 await db.writeTransaction((tx) async {
-  await tx.execute(updateUserCommand, (id: '123', name: 'New Name'));
-  await tx.execute(logChangeCommand, (userId: '123', action: 'update'));
+  await tx.execute(patchUser, (id: '123', name: 'Updated'));
 });
 ```
 
@@ -105,10 +99,29 @@ final createdAt = row.parseDateTime('created_at');
 
 ## Caveats
 
-- **Named Parameters**: Parameters use `@name` syntax in SQL. The implementation translates these to positional `?` parameters. Ensure every `@name` in the SQL has a corresponding key in the `params` map.
-- **Runtime Validation**: While parameters are type-safe at compile-time, result validation (schema and types) happens at runtime during access.
-- **Record Tokens**: The `R` record type in `Query<P, R>` is currently a "linting token." It provides context for developers and potential custom linters but does not enable dot-access to fields on the row.
+- **Named Parameters**: Parameters use `@name` syntax in SQL, which are translated to positional `?` parameters.
+- **Runtime Validation**: While parameters are checked at compile-time, result validation (schema/types) happens at runtime.
+- **Record Tokens**: The `R` record type in `Query<P, R>` is a "linting token" for developer guidance; dot-access on rows (e.g. `row.name`) is not yet supported.
 
 ## Recommended Pattern
 
 Organize queries in a private `_Queries` class within your repository files to keep SQL and mapping logic co-located with their usage.
+
+```dart
+class UserRepository {
+  final SqliteRecords _db;
+  UserRepository(this._db);
+
+  Future<void> patch(String id, {String? name}) {
+    return _db.execute(_Queries.patchUser, (id: id, name: name));
+  }
+}
+
+abstract class _Queries {
+  static final patchUser = UpdateCommand<({String id, String? name})>(
+    table: 'users',
+    primaryKeys: ['id'],
+    params: (p) => {'id': p.id, 'name': p.name},
+  );
+}
+```
