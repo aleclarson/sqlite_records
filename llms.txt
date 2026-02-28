@@ -32,10 +32,26 @@ final activeUsersQuery = Query<({String status}), ({String name, int age})>(
   params: (p) => {'status': p.status},
   schema: {'name': String, 'age': int},
 );
+
+// Parameterless query
+final allUsersQuery = Query<void, ({String name, int age})>.static(
+  'SELECT name, age FROM users',
+  schema: {'name': String, 'age': int},
+);
 ```
 
 #### `Command<P>` (Mutations)
 Used for `INSERT`, `UPDATE`, and `DELETE`.
+
+```dart
+final updateAgeCommand = Command<({int id, int age})>(
+  'UPDATE users SET age = @age WHERE id = @id',
+  params: (p) => {'id': p.id, 'age': p.age},
+);
+
+// Parameterless command
+final deleteAllCommand = Command.static('DELETE FROM users');
+```
 
 #### Dynamic Commands (Patching)
 - **`UpdateCommand<P>`**: Generates an `UPDATE` statement, skipping any `null` values.
@@ -66,10 +82,15 @@ final db = SqlRecordsPostgres(postgresSession);
 The `SqlRecords` interface provides methods for executing queries and mutations.
 
 #### `getAll`, `get`, `getOptional`
-Returns `RowSet<R>` or `Row<R>`.
+Returns `RowSet<R>` or `Row<R>`. Parameters are optional for `Query<void, R>`.
 
 ```dart
+// With parameters
 final rows = await db.getAll(activeUsersQuery, (status: 'active'));
+
+// Without parameters (.static)
+final allRows = await db.getAll(allUsersQuery);
+
 for (final row in rows) {
   final name = row.get<String>('name');
 }
@@ -79,10 +100,15 @@ for (final row in rows) {
 Mutations use the `Command<P>` class.
 
 #### `execute`
-Executes a command and returns a `MutationResult`.
+Executes a command and returns a `MutationResult`. Parameters are optional for `Command<void>`.
 
 ```dart
+// With parameters
 final result = await db.execute(updateUserCommand, (id: '123', name: 'New Name'));
+
+// Without parameters (.static)
+await db.execute(deleteAllCommand);
+
 print('Rows affected: ${result.affectedRows}');
 ```
 
