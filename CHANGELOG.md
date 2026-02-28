@@ -1,3 +1,9 @@
+## 0.3.1
+
+- Updated `parseDateTime` to support both ISO-8601 strings and epoch integers.
+- Added documentation for the "Inline Definition" pattern in the README.
+- Added `test/` directory to `.pubignore`.
+
 ## 0.3.0
 
 - Added support for map literal parameters in `Query` and `Command` to simplify inline definitions.
