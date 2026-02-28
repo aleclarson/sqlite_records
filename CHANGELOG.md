@@ -2,7 +2,6 @@
 
 - Updated `parseDateTime` to support both ISO-8601 strings and epoch integers.
 - Added documentation for the "Inline Definition" pattern in the README.
-- Added `test/` directory to `.pubignore`.
 
 ## 0.3.0
 

@@ -34,6 +34,10 @@ The message should be structured as follows:
 - **chore**: Other changes that don't modify src or test files
 - **revert**: Reverts a previous commit
 
+### Changelog Management
+
+When updating the `CHANGELOG.md`, only include meaningful changes (features, bug fixes, breaking changes, or significant documentation/refactorings). Do not mention chores or trivial updates (like formatting or build system tweaks) unless that's all there is.
+
 ### Workflow
 
 1.  **Format Code**: Run `dart format .` to ensure consistent code style.
