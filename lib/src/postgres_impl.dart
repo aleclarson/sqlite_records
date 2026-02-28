@@ -1,6 +1,7 @@
 import 'package:postgres/postgres.dart' as pg;
 import 'package:meta/meta.dart';
 import 'core.dart';
+import 'utils.dart';
 
 export 'core.dart';
 

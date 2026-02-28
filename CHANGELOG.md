@@ -11,6 +11,7 @@
 - `SqliteRecords` and `SqliteRecordsReadonly` are now type aliases for backward compatibility.
 - Introduced `MutationResult` to provide a unified result for `execute` across engines.
 - Internal refactoring of `SafeRow` and `SafeResultSet` to be database-agnostic.
+- Improved internal structure to avoid leaking private helpers into the public API.
 
 ## 0.3.1
 
