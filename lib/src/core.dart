@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:meta/meta.dart';
 import 'query.dart';
 import 'safe_row.dart';
 

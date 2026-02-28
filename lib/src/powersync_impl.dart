@@ -28,8 +28,7 @@ class SqliteRowData implements RowData {
 
 @internal
 class SqliteMutationResult implements MutationResult {
-  final sqlite.ResultSet _result;
-  SqliteMutationResult(this._result);
+  SqliteMutationResult(sqlite.ResultSet _);
 
   @override
   int? get affectedRows => null; // Not directly available on sqlite3.ResultSet

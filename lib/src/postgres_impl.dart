@@ -1,7 +1,6 @@
 import 'package:postgres/postgres.dart' as pg;
 import 'package:meta/meta.dart';
 import 'core.dart';
-import 'utils.dart';
 
 export 'core.dart';
 
@@ -98,11 +97,13 @@ class PostgresWriteContext extends PostgresReadContext implements SqlRecords {
   @override
   Future<T> readTransaction<T>(
       Future<T> Function(SqlRecordsReadonly tx) action) async {
-    return _session.runTx((tx) => action(PostgresReadContext(tx)));
+    return (_session as pg.SessionExecutor)
+        .runTx((tx) => action(PostgresReadContext(tx)));
   }
 
   @override
   Future<T> writeTransaction<T>(Future<T> Function(SqlRecords tx) action) {
-    return _session.runTx((tx) => action(PostgresWriteContext(tx)));
+    return (_session as pg.SessionExecutor)
+        .runTx((tx) => action(PostgresWriteContext(tx)));
   }
 }
