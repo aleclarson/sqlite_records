@@ -47,8 +47,7 @@ class PostgresReadContext implements SqlRecordsReadonly {
       [P? params]) async {
     final (sql, map) = query.apply(params);
     final result = await _session.execute(pg.Sql.named(sql), parameters: map);
-    return RowSet<R>(
-        result.map((row) => PostgresRow<R>(row, query.schema)));
+    return RowSet<R>(result.map((row) => PostgresRow<R>(row, query.schema)));
   }
 
   @override

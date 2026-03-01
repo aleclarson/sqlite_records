@@ -25,7 +25,6 @@ abstract interface class SqlRecordsReadonly {
     Query<P, R> query, [
     P? params,
   ]);
-
 }
 
 /// Information about a mutation (INSERT, UPDATE, DELETE).

@@ -108,8 +108,9 @@ void main() {
       final insertReturning = InsertCommand<({String id, String name})>(
         table: 'users',
         params: (p) => {'id': p.id, 'name': p.name},
-      ).returning({'id': String, 'created_at': int}, columns: ['id', 'created_at']);
-      
+      ).returning({'id': String, 'created_at': int},
+          columns: ['id', 'created_at']);
+
       final (sql, _) = insertReturning.apply((id: '1', name: 'Alec'));
       expect(
           sql,
@@ -136,7 +137,7 @@ void main() {
         primaryKeys: ['id'],
         params: (p) => {'id': p.id},
       ).returning({'id': String}, columns: ['id']);
-      
+
       final (sql, _) = deleteReturning.apply((id: '1'));
       expect(sql, equals('DELETE FROM users WHERE id = @id RETURNING id'));
     });
@@ -149,10 +150,12 @@ void main() {
         primaryKeys: ['id'],
         params: (p) => {'id': p.id, 'name': p.name},
       ).returning({'id': String, 'name': String}, columns: ['id', 'name']);
-      
+
       final (sql, _) = patchReturning.apply((id: '1', name: 'Alec'));
-      expect(sql,
-          equals('UPDATE users SET name = @name WHERE id = @id RETURNING id, name'));
+      expect(
+          sql,
+          equals(
+              'UPDATE users SET name = @name WHERE id = @id RETURNING id, name'));
     });
   });
 
@@ -198,10 +201,12 @@ void main() {
         table: 'users',
         params: (p) => {'id': p.id, 'name': p.name},
       ).returning({'id': String, 'name': String});
-      
+
       final (sql, _) = insertReturning.apply((id: '1', name: 'Alec'));
-      expect(sql,
-          equals('INSERT INTO users (id, name) VALUES (@id, @name) RETURNING id, name'));
+      expect(
+          sql,
+          equals(
+              'INSERT INTO users (id, name) VALUES (@id, @name) RETURNING id, name'));
     });
   });
 }

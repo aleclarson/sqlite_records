@@ -44,8 +44,7 @@ class PowerSyncReadContext implements SqlRecordsReadonly {
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final results = await _readCtx.getAll(sql, args);
-    return RowSet<R>(
-        results.map((row) => PowerSyncRow<R>(row, query.schema)));
+    return RowSet<R>(results.map((row) => PowerSyncRow<R>(row, query.schema)));
   }
 
   @override

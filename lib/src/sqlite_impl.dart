@@ -39,8 +39,7 @@ class SqliteReadContext implements SqlRecordsReadonly {
       [P? params]) async {
     final (sql, args) = prepareSql(query.sql, query.params, params);
     final results = _db.select(sql, args);
-    return RowSet<R>(
-        results.map((row) => SqliteRow<R>(row, query.schema)));
+    return RowSet<R>(results.map((row) => SqliteRow<R>(row, query.schema)));
   }
 
   @override
