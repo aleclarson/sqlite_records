@@ -51,6 +51,12 @@ final activeUsersQuery = Query<({String status}), ({String name, int age})>(
   schema: {'name': String, 'age': int},
 );
 
+// Parameterless queries
+final allUsersQuery = Query<void, ({String name, int age})>.static(
+  'SELECT name, age FROM users',
+  schema: {'name': String, 'age': int},
+);
+
 // Inline query with map literal params
 final row = await db.get(Query(
   'SELECT * FROM users WHERE id = @id',
@@ -59,7 +65,7 @@ final row = await db.get(Query(
 ));
 ```
 
-#### Dynamic Commands (PATCH / INSERT)
+#### Dynamic Commands (PATCH / INSERT / DELETE)
 Specialized commands generate SQL dynamically based on provided parameters.
 
 ```dart
@@ -80,6 +86,28 @@ final insertUser = InsertCommand<({String id, String? name})>(
 );
 
 await db.execute(insertUser, (id: '456', name: 'Alice'));
+
+// DeleteCommand dynamically builds a WHERE clause by primary key.
+final deleteUser = DeleteCommand<({String id})>(
+  table: 'users',
+  primaryKeys: ['id'],
+  params: (p) => {'id': p.id},
+);
+
+await db.execute(deleteUser, (id: '123'));
+```
+
+#### RETURNING Clauses
+Convert any command into a query to retrieve generated IDs or updated values.
+
+```dart
+final insertAndReturn = insertUser.returning<({int id, String name})>({
+  'id': int,
+  'name': String,
+});
+
+final row = await db.get(insertAndReturn, (id: '123', name: 'New User'));
+print('Generated ID: ${row.get<int>('id')}');
 ```
 
 #### The `SQL` Wrapper
@@ -88,6 +116,9 @@ Use `SQL(value)` to distinguish between "omit this field" (plain `null`) and "ex
 ```dart
 // Explicitly set 'age' to NULL while skipping 'name' update
 await db.execute(patchUser, (id: '123', name: null, age: const SQL(null)));
+
+// Static commands for parameterless SQL
+final deleteAll = Command.static('DELETE FROM users');
 ```
 
 ### 3. Transactions
