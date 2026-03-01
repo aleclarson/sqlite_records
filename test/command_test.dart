@@ -108,8 +108,7 @@ void main() {
       final insertReturning = InsertCommand<({String id, String name})>(
         table: 'users',
         params: (p) => {'id': p.id, 'name': p.name},
-      ).returning({'id': String, 'created_at': int},
-          columns: ['id', 'created_at']);
+      ).returning({'id': String, 'created_at': int});
 
       final (sql, _) = insertReturning.apply((id: '1', name: 'Alec'));
       expect(
@@ -136,7 +135,7 @@ void main() {
         table: 'users',
         primaryKeys: ['id'],
         params: (p) => {'id': p.id},
-      ).returning({'id': String}, columns: ['id']);
+      ).returning({'id': String});
 
       final (sql, _) = deleteReturning.apply((id: '1'));
       expect(sql, equals('DELETE FROM users WHERE id = @id RETURNING id'));
@@ -149,7 +148,7 @@ void main() {
         table: 'users',
         primaryKeys: ['id'],
         params: (p) => {'id': p.id, 'name': p.name},
-      ).returning({'id': String, 'name': String}, columns: ['id', 'name']);
+      ).returning({'id': String, 'name': String});
 
       final (sql, _) = patchReturning.apply((id: '1', name: 'Alec'));
       expect(
