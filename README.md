@@ -127,6 +127,24 @@ final deleteAll = Command.static('DELETE FROM users');
 await db.execute(deleteAll);
 ```
 
+#### Map Literal Parameters
+For simple or one-off queries where Record-based type safety isn't required, you can use map literals directly.
+
+```dart
+// Inline Query
+final row = await db.get(Query(
+  'SELECT name FROM users WHERE id = @id',
+  params: {'id': '123'},
+  schema: {'name': String},
+));
+
+// Inline Command
+await db.execute(Command(
+  'UPDATE users SET status = @status WHERE id = @id',
+  params: {'id': '123', 'status': 'active'},
+));
+```
+
 ### 3. Transactions
 
 Support for both read-only and read-write transactions with dedicated contexts.

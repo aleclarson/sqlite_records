@@ -53,5 +53,26 @@ void main() {
       expect(sql, equals('DELETE FROM users'));
       expect(params, isEmpty);
     });
+
+    test('Map Literal Parameters (Inline)', () {
+      // Inline Query
+      final query = Query(
+        'SELECT name FROM users WHERE id = @id',
+        params: {'id': '123'},
+        schema: {'name': String},
+      );
+      final (qSql, qParams) = query.apply(null);
+      expect(qSql, equals('SELECT name FROM users WHERE id = @id'));
+      expect(qParams, equals({'id': '123'}));
+
+      // Inline Command
+      final command = Command(
+        'UPDATE users SET status = @status WHERE id = @id',
+        params: {'id': '123', 'status': 'active'},
+      );
+      final (cSql, cParams) = command.apply(null);
+      expect(cSql, equals('UPDATE users SET status = @status WHERE id = @id'));
+      expect(cParams, equals({'id': '123', 'status': 'active'}));
+    });
   });
 }
