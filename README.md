@@ -51,11 +51,15 @@ final activeUsersQuery = Query<({String status}), ({String name, int age})>(
   schema: {'name': String, 'age': int},
 );
 
+final activeUsers = await db.getAll(activeUsersQuery, (status: 'active'));
+
 // Parameterless queries
 final allUsersQuery = Query<void, ({String name, int age})>.static(
   'SELECT name, age FROM users',
   schema: {'name': String, 'age': int},
 );
+
+final allUsers = await db.getAll(allUsersQuery);
 
 // Inline query with map literal params
 final row = await db.get(Query(
@@ -119,6 +123,7 @@ await db.execute(patchUser, (id: '123', name: null, age: const SQL(null)));
 
 // Static commands for parameterless SQL
 final deleteAll = Command.static('DELETE FROM users');
+await db.execute(deleteAll);
 ```
 
 ### 3. Transactions
