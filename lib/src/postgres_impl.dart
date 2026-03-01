@@ -15,7 +15,12 @@ class PostgresRow<R extends Record> extends Row<R> {
 
   @override
   Object? operator [](String key) {
-    return _row.toColumnMap()[key];
+    for (final (i, col) in _row.schema.columns.indexed) {
+      if (col.columnName case final String columnName) {
+        if (columnName == key) return _row[i];
+      }
+    }
+    return null;
   }
 }
 
