@@ -1,3 +1,13 @@
+## 0.7.0
+
+- **BREAKING**: Replaced `SQL.nullValue()` with constant `SQL.NULL`.
+- Updated docs, specs, and tests to use `SQL.NULL`.
+
+## 0.6.0
+
+- **BREAKING**: Replaced `SQL(value)` with `SQL.nullValue()` to make supported dynamic SQL behavior explicit.
+- Updated docs and tests to use `SQL.nullValue()`.
+
 ## 0.5.0
 
 - **BREAKING**: Renamed `SafeRow` to `Row` and `SafeResultSet` to `RowSet`.

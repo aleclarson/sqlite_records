@@ -50,7 +50,7 @@ void main() {
         },
       );
       final (sql, map) =
-          patchDynamic.apply((id: '1', name: const SQL(null), age: null));
+          patchDynamic.apply((id: '1', name: SQL.NULL, age: null));
       expect(sql, equals('UPDATE users SET name = NULL WHERE id = @id'));
       expect(map, equals({'id': '1'}));
     });
@@ -90,7 +90,7 @@ void main() {
         },
       );
       final (sql, map) =
-          insertDynamic.apply((id: '1', name: const SQL(null), age: null));
+          insertDynamic.apply((id: '1', name: SQL.NULL, age: null));
       expect(sql, equals('INSERT INTO users (id, name) VALUES (@id, NULL)'));
       expect(map, equals({'id': '1'}));
     });

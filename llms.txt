@@ -82,7 +82,7 @@ final row = await db.get(Command(
 - **`UpdateCommand<P>`**: Generates an `UPDATE` statement, skipping any `null` values.
 - **`InsertCommand<P>`**: Generates an `INSERT` statement using only non-null values.
 - **`DeleteCommand<P>`**: Generates a `DELETE` statement by primary key.
-- **`SQL(value)`**: A wrapper to distinguish between "omit this field" (plain `null`) and "set this field to NULL" (`SQL(null)`).
+- **`SQL.NULL`**: An explicit marker to distinguish between "omit this field" (plain `null`) and "set this field to NULL".
 
 ### 2. RETURNING Clauses
 Mutations can be converted into queries using the `returning` method. This is useful for retrieving generated IDs or updated timestamps.

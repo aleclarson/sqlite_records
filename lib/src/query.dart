@@ -1,16 +1,18 @@
 /// Maps a Record/Class to a SQLite named parameter map.
 typedef ParamMapper<P> = Map<String, Object?> Function(P params);
 
-/// Wrapper for a value to be used in a SQL statement.
+/// Explicit SQL-null marker for dynamic commands.
 ///
-/// Primarily used with [UpdateCommand] or [InsertCommand] to distinguish between
-/// "omit this field" (plain `null`) and "set this field to NULL" (`SQL(null)`).
+/// Primarily used with [UpdateCommand] and [InsertCommand] to distinguish
+/// between "omit this field" (plain `null`) and "set this field to NULL"
+/// (`SQL.NULL`).
 class SQL {
-  final Object? value;
-  const SQL(this.value);
+  static const SQL NULL = SQL._();
+
+  const SQL._();
 
   @override
-  String toString() => 'SQL($value)';
+  String toString() => 'SQL.NULL';
 }
 
 /// Best-effort schema definition using Dart's Type objects (e.g., int, String).

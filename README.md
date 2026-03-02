@@ -116,11 +116,11 @@ print('Generated ID: ${row.get<int>('id')}');
 ```
 
 #### The `SQL` Wrapper
-Use `SQL(value)` to distinguish between "omit this field" (plain `null`) and "explicitly set to NULL" (`SQL(null)`).
+Use `SQL.NULL` to distinguish between "omit this field" (plain `null`) and "explicitly set to NULL".
 
 ```dart
 // Explicitly set 'age' to NULL while skipping 'name' update
-await db.execute(patchUser, (id: '123', name: null, age: const SQL(null)));
+await db.execute(patchUser, (id: '123', name: null, age: SQL.NULL));
 
 // Static commands for parameterless SQL
 final deleteAll = Command.static('DELETE FROM users');

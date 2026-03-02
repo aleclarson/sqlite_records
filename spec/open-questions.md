@@ -29,11 +29,11 @@ Status: decisions recorded. Any item marked with a decision that differs from cu
 
    DECISION: casing is never normalized.
 
-6. **`SQL(value)` behavior for non-null literal embedding**
-   - Current dynamic command implementations treat `SQL(_)` as literal `NULL` only.
+6. **`SQL.NULL` behavior for non-null literal embedding**
+   - Current dynamic command implementations treat the SQL marker as literal `NULL` only.
    - If arbitrary raw SQL embedding is desired, a new explicit API should be designed.
 
-   DECISION: Switch to `SQL.null()` to be more explicit about what is supported.
+   DECISION: Keep null-only semantics with `SQL.NULL`.
 
 7. **`R extends Record` ergonomics**
    - `R` is currently a linting/token aid only.

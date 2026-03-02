@@ -57,7 +57,7 @@ Generation rules:
 
 - Primary key fields always contribute `WHERE key = @key` and are bound.
 - Non-primary key values:
-  - `SQL.null()` => emit `key = NULL` (literal), not a bound arg.
+  - `SQL.NULL` => emit `key = NULL` (literal), not a bound arg.
   - `null` => omitted (patch semantics).
   - non-null => emit `key = @key` and bind.
 - If no updatable fields remain, emit `NoOpCommand`.
@@ -73,7 +73,7 @@ Inputs:
 Generation rules:
 
 - For each field:
-  - `SQL.null()` => include column with literal `NULL`.
+  - `SQL.NULL` => include column with literal `NULL`.
   - `null` => omit field.
   - non-null => include `@key` bind.
 - If no columns remain, emit `INSERT INTO <table> DEFAULT VALUES`.

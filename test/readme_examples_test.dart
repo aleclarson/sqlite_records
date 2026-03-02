@@ -39,7 +39,8 @@ void main() {
         'name': String,
       });
 
-      final (sql, params) = insertAndReturn.apply((id: '123', name: 'New User'));
+      final (sql, params) =
+          insertAndReturn.apply((id: '123', name: 'New User'));
       expect(
           sql,
           equals(

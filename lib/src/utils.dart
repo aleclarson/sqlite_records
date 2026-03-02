@@ -21,7 +21,7 @@ Map<String, Object?>? resolveParams<P>(dynamic params, P? p) {
     }
 
     final value = map[name];
-    args.add(value is SQL ? value.value : value);
+    args.add(value is SQL ? null : value);
     return '?';
   });
 
